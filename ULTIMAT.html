@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Arte Reactivo - Tren de Datos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #111;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Roboto', sans-serif; /* Fuente moderna tipo palo seco */
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      background: #000;
+      font-family: 'Roboto', sans-serif; /* Fuente aplicada en el canvas también */
+    }
+
+    /* Estilo para los textos dentro del canvas */
+    canvas {
+      font-size: 10px; /* Ajustar tamaño de la fuente si es necesario */
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="canvas" width="800" height="600"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const cols = 6;
+    const rows = 14;
+    const cellWidth = canvas.width / cols;
+    const cellHeight = canvas.height / rows;
+
+    const totalImages = 24;
+    let sourceImages = [];
+    let imageParts = [];
+    let imagesLoaded = 0;
+
+    const imagePaths = [];
+    for (let i = 1; i <= totalImages; i++) {
+      imagePaths.push(`faces/${i}.jpg`);
+    }
+
+    // Fila offsets y velocidades
+    let offsets = Array.from({ length: rows }, () => Math.random() * canvas.width);
+    let speeds = Array.from({ length: rows }, () => Math.random() * 25);
+
+    // Cargar imágenes
+    for (let i = 0; i < totalImages; i++) {
+      const img = new Image();
+      img.src = imagePaths[i];
+      img.onload = () => {
+        imagesLoaded++;
+        if (imagesLoaded === totalImages) {
+          segmentImages();
+          initializeGrid();
+        }
+      };
+      sourceImages.push(img);
+    }
+
+    // Cortar imágenes en partes
+    function segmentImages() {
+      imageParts = [];
+      for (let img of sourceImages) {
+        let tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        let tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        let parts = [];
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            const part = tempCtx.getImageData(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            parts.push(part);
+          }
+        }
+
+        imageParts.push(parts);
+      }
+    }
+
+    // Generar datos ficticios tipo ficha
+    function generateFakeData() {
+      const names = ["Isaac Retamal", "Enrique 903200", "Valentín Quiroga", "Luisa Gómez", "Jorge Reyes", 
+        "Clara Núñez", "Carlos Martínez", "Ana Pérez", "José García", "María Rodríguez", 
+        "Luis Fernández", "Pedro Sánchez", "Laura Díaz", "Miguel Hernández", "Patricia López",
+        "Juan González", "Sofía García", "Pedro Torres", "Ana Martínez", "Carlos Sánchez",
+        "Elena Jiménez", "Raúl Ramírez", "Sandra Álvarez", "Andrés Pérez", "Luis Martínez",
+        "Marta González", "David Sánchez", "Carmen Rodríguez", "Javier Gómez", "Rosa López",
+        "Luis Fernández", "Sara Ruiz", "Cristian Díaz", "Silvia García", "Manuel Gómez",
+        "Eva Martínez", "Juan Carlos Pérez", "Luis Hernández", "Antonio Fernández", "José Luis García",
+        "María Dolores García", "Joaquín González", "Teresa Pérez", "Marta Torres", "Álvaro Ruiz",
+        "Paola Sánchez", "Daniel Rodríguez", "Santiago García", "Nerea López", "Luis Alberto Fernández",
+        "Carlos López", "Carmen González", "Ricardo Pérez", "Antonio Ramírez", "Lucía Sánchez",
+        "Esteban Jiménez", "Isabel Torres", "Eva Fernández", "Jaime Rodríguez", "Manuel Pérez",
+        "Pablo Sánchez", "María García", "Cristina González", "José Manuel Fernández", "Andrés García",
+        "Mariana López", "David González", "Lucía Torres", "José Antonio Pérez", "Eduardo Sánchez",
+        "Teresa García", "Juan Fernández", "Raúl González", "José Enrique Martínez", "Sandra Jiménez",
+        "Paula Torres", "Manuel López", "Carla González", "Ricardo Hernández", "Pedro Fernández",
+        "Carlos Pérez", "Laura Sánchez", "Mónica González", "Antonio García", "Laura Fernández",
+        "Felipe Rodríguez", "Cristina Pérez", "Marta Sánchez", "Antonio López", "Javier Torres",
+        "María Isabel Rodríguez", "Carlos Ramírez", "Paula González", "Luis Ramírez", "José Fernández",
+        "Raúl Sánchez", "Antonio González", "Luis Sánchez", "María Jesús Pérez", "Ricardo Rodríguez",
+        "Carlos García", "Isabel González", "Juan Antonio López", "Felipe Pérez", "María Jiménez",
+        "Óscar González", "Beatriz Sánchez", "Pablo Ramírez", "Joaquín Pérez", "Alejandro Rodríguez"
+      ];
+      const cities = ["Buenos Aires", "Bogotá", "Lima", "Santiago", "Montevideo", "Quito", "México D.F.", "Caracas",
+        "Madrid", "Barcelona", "Sevilla", "Valencia", "Lisboa", "Paris", "Roma", "Berlín", "Londres", 
+        "Tokio", "Buenos Aires", "Ciudad de México", "San Juan", "Montevideo", "Lima", "Bogotá", 
+        "Quito", "Guatemala", "San Salvador", "La Paz", "Cali", "Maracaibo", "Asunción", "São Paulo",
+        "Rio de Janeiro", "Lima", "Santiago de Chile", "Córdoba", "Atenas", "Dublin", "Málaga", "Murcia",
+        "Cali", "Bucaramanga", "Santiago", "Valparaíso", "Guayaquil", "Puebla", "Culiacán", "Mendoza", 
+        "Neuquén", "Salta", "Puerto Rico", "Barranquilla", "Monterrey", "Jalisco", "Tijuana", "Cancún", 
+        "Venezuela", "Santa Cruz", "Rosario", "Mar del Plata", "Carabobo", "Zaragoza", "Río de Janeiro", 
+        "Buenos Aires", "Quito", "Río Grande", "Niterói", "Santiago de Chile", "La Plata", "Mérida", 
+        "Cali", "Lima", "Barquisimeto", "Cartagena", "Valparaíso", "Santiago del Estero", "Tegucigalpa", 
+        "Puebla", "Chihuahua", "Río Cuarto", "Guanajuato", "Mexico", "Granada", "Potosí", "Buenos Aires", 
+        "Lima", "Maracay", "Caracas", "Marbella", "Santa Fe", "Buenos Aires", "Guadalajara", "Tegucigalpa"
+      ];
+      const id = Math.floor(Math.random() * 900 + 100);
+      const coord = `LAT:${(Math.random() * 180 - 90).toFixed(2)} LON:${(Math.random() * 30 - 30).toFixed(2)}`;
+      return {
+        name: names[Math.floor(Math.random() * names.length)],
+        city: cities[Math.floor(Math.random() * cities.length)],
+        id: `ID-${id}`,
+        coord
+      };
+    }
+
+    // Dibujar las celdas con movimiento horizontal
+    function initializeGrid() {
+      function updateGrid() {
+        // Desvanecimiento suave
+        ctx.fillStyle = "rgba(0, 0, 0, 0.01)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let y = 0; y < rows; y++) {
+          offsets[y] -= speeds[y];
+          if (offsets[y] < -canvas.width) offsets[y] = canvas.width;
+
+          for (let x = 0; x < cols; x++) {
+            if (Math.random() < 0.95) continue; // posibilidad de celda vacía (negra)
+
+            const imageIndex = Math.floor(Math.random() * imageParts.length);
+            const partIndex = y * cols + x;
+            const part = imageParts[imageIndex][partIndex];
+            const posX = x * cellWidth + offsets[y];
+            const posY = y * cellHeight;
+
+            ctx.putImageData(part, posX, posY);
+
+            // Datos ficticios
+            const data = generateFakeData();
+            ctx.font = "10px 'Roboto', sans-serif"; // Ajuste de la fuente aquí
+            ctx.fillStyle = "#fff";
+            ctx.fillText(data.name, posX + 4, posY + cellHeight - 26);
+            ctx.fillText(data.city, posX + 4, posY + cellHeight - 18);
+            ctx.fillText(data.id, posX + 4, posY + cellHeight - 10);
+            ctx.fillText(data.coord, posX + 4, posY + cellHeight - 2);
+          }
+        }
+
+        requestAnimationFrame(updateGrid);
+      }
+
+      updateGrid();
+    }
+  </script>
+</body>
+</html>
